@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "tormey-xyz"
+  },
+  "targets": {
+    "tormey-xyz": {
+      "hosting": {
+        "personal-site": [
+          "tormey-xyz"
+        ]
+      }
+    }
   }
 }

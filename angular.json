@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "personal-site": {
+    "tormey-xyz": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/personal-site",
+            "outputPath": "dist/tormey-xyz",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
@@ -60,10 +60,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "personal-site:build:production"
+              "browserTarget": "tormey-xyz:build:production"
             },
             "development": {
-              "browserTarget": "personal-site:build:development"
+              "browserTarget": "tormey-xyz:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -71,7 +71,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "personal-site:build"
+            "browserTarget": "tormey-xyz:build"
           }
         },
         "test": {
@@ -96,7 +96,7 @@
           "builder": "@angular/fire:deploy",
           "options": {
             "version": 2,
-            "browserTarget": "personal-site:build:production"
+            "browserTarget": "tormey-xyz:build:production"
           }
         }
       }

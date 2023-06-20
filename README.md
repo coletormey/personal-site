@@ -29,3 +29,11 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 =======
 # personal-site
 >>>>>>> 72df35d5fd2b382345217212065a1d8844e146af
+
+
+# Workflow for pushing live changes to site
+
+* make sure git branch is clean and working
+* in terminal, within main directory for proj, run the following commands:
+>> npm run build
+>> firebase deploy --except functions

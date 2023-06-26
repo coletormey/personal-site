@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, HostListener } from "@angular/core";
 import * as THREE from "three";
 
 @Component({
@@ -9,18 +9,33 @@ import * as THREE from "three";
 
 export class WelcomeCardComponent implements AfterViewInit {
   @ViewChild('canvas') public canvasRef: ElementRef;
+  @ViewChild('canvas_2') public canvasRef_2: ElementRef;
+
+  screenWidth: any;
+  screenHeight: any; 
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    console.log('window size changes')
+
+    this.screenWidth = window.innerWidth;
+    this.screenHeight = window.innerHeight;
+    this.renderer.setSize(this.screenWidth, this.screenHeight);
+  }
+
+
 
   // Menu Item Properties
   @Input() public revolutionSpeed: number = 0.5;
   @Input() public rotationSpeedX: number = 0.01;
-  @Input() public rotationSpeedY: number = 0.1;
+  @Input() public rotationSpeedY: number = 0.01;
   @Input() public size: number = 64;
   @Input() public orientation: number = 0;
   @Input() public position: [number, number] = [0, 0]
-  @Input() public texture: string = "/assets/AC_menuBackground.png"
+  @Input() public texture: string = "/assets/raven.png"
 
   // Stage Properties
-  @Input() public cameraZ: number = 400;
+  @Input() public cameraZ: number = 200;
   @Input() public fieldOfView: number = 1;
   @Input('nearClipping') public nearClippingPane: number = 1;
   @Input('farClipping') public farClippingPane: number = 1000;
@@ -34,9 +49,10 @@ export class WelcomeCardComponent implements AfterViewInit {
 
   private loader = new THREE.TextureLoader();
   private geometry = new THREE.BoxGeometry(1, 1, 1);
-  private material = new THREE.MeshPhongMaterial({ map: this.loader.load(this.texture) });
+  private material = new THREE.MeshBasicMaterial({ map: this.loader.load(this.texture) });
 
-  private cube: THREE.Mesh = new THREE.Mesh(this.geometry, this.material);
+  private cube1: THREE.Mesh = new THREE.Mesh(this.geometry, this.material);
+  private cube2: THREE.Mesh = new THREE.Mesh(this.geometry, this.material);
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
 
@@ -45,7 +61,8 @@ export class WelcomeCardComponent implements AfterViewInit {
     // scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.TextureLoader().load("/assets/AC_menuBackground.png");
-    this.scene.add(this.cube);
+    this.scene.add(this.cube1);
+    this.scene.add(this.cube2);
 
     // camera
     let aspectRatio = this.getAspectRatio();
@@ -63,9 +80,12 @@ export class WelcomeCardComponent implements AfterViewInit {
   }
 
   // Animate Cube
-  private animateCube() {
-    this.cube.rotation.x += this.rotationSpeedX;
-    this.cube.rotation.y += this.rotationSpeedY;
+  private animate() {
+    this.cube1.rotation.x += this.rotationSpeedX;
+    this.cube1.rotation.y += this.rotationSpeedY;
+
+    this.cube2.rotation.x += 0.1;
+    this.cube2.position.x = -1;
   }
 
   // Begin Rendering Loop
@@ -73,13 +93,13 @@ export class WelcomeCardComponent implements AfterViewInit {
     // use canvas element in template
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
     this.renderer.setPixelRatio(devicePixelRatio);
-    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     let component: WelcomeCardComponent = this;
     (function render() {
       requestAnimationFrame(render);
-      component.animateCube();
       component.renderer.render(component.scene, component.camera);
+      component.animate();
     }());
   }
 

@@ -5,13 +5,12 @@
 }
 
 .media-links {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .media-link {
   background-repeat: no-repeat;
-
   margin: 0.75rem;
 }
 
@@ -23,7 +22,7 @@
 }
 
 .spacer {
-  width: 6rem;
+  width: 3rem;
 }
 
 .music-icon {

@@ -16,11 +16,13 @@ export class WelcomeCardComponent implements AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
-    console.log('window size changes')
-
     this.screenWidth = window.innerWidth;
     this.screenHeight = window.innerHeight;
-    this.renderer.setSize(this.screenWidth, this.screenHeight);
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize(this.screenWidth, this.screenHeight * 3/4);
+
   }
 
 
@@ -93,7 +95,7 @@ export class WelcomeCardComponent implements AfterViewInit {
     // use canvas element in template
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
     this.renderer.setPixelRatio(devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(this.canvas.clientWidth, window.innerHeight * 3/4);
 
     let component: WelcomeCardComponent = this;
     (function render() {

@@ -7,7 +7,7 @@ import * as THREE from "three";
   templateUrl: 'welcome-card.component.html',
   styleUrls: ['welcome-card.component.css']
 })
-
+ 
 export class WelcomeCardComponent implements AfterViewInit {
   @ViewChild('canvas') public canvasRef: ElementRef;
   initialAspectRatio: any;

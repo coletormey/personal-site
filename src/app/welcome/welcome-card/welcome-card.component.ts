@@ -53,8 +53,8 @@ export class WelcomeCardComponent implements AfterViewInit {
 
   private pathPoints = [
     new THREE.Vector3(3, 0, 3),
-    new THREE.Vector3(3, 1, -3),
-    new THREE.Vector3(-3, 1, -3),
+    new THREE.Vector3(3, 2, -3),
+    new THREE.Vector3(-3, 2, -3),
     new THREE.Vector3(-3, 0, 3)
 
   ];
@@ -102,6 +102,7 @@ export class WelcomeCardComponent implements AfterViewInit {
 
     this.flow = new Flow(this.cube);
     this.flow.updateCurve(0, this.curve);
+    this.flow.uniforms.pathOffset.value = -0.12;
     this.flow.uniforms.flow.value = false;
   }
 
@@ -144,8 +145,12 @@ export class WelcomeCardComponent implements AfterViewInit {
     if (intersects.length > 0) {
       if (this.INTERSECTED !== intersects[0].object ) { 
         this.INTERSECTED = intersects[0].object;
-        if (this.INTERSECTED !== this.rightArrow && this.INTERSECTED !== this.leftArrow)
-/*          this.INTERSECTED.rotation.x += 100;*/console.log('hey');
+        if (this.INTERSECTED !== this.rightArrow && this.INTERSECTED !== this.leftArrow) {
+          /*          this.INTERSECTED.rotation.x += 100;*/
+/*          this.flow.object3D.setRotationFromAxisAngle(new THREE.Vector3(1,1,1), 0.05);*/
+          console.log();
+        }
+          
       } else 
         this.INTERSECTED = null;
     }
@@ -154,9 +159,9 @@ export class WelcomeCardComponent implements AfterViewInit {
   
   // Animate 
   private animate() {
-    this.cube.rotation.x += this.rotationSpeedX;
-    this.cube.rotation.y += this.rotationSpeedY;
-    this.flow.moveAlongCurve(0.0006);
+    this.flow.object3D.geometry.rotateX(0.5);
+
+    this.flow.moveAlongCurve(0.002);
   }
 
   // Resize

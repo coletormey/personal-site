@@ -1,6 +1,8 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, HostListener } from "@angular/core";
 import * as THREE from "three";
+import * as YUKA from "yuka";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { Flow } from "three/examples/jsm/modifiers/CurveModifier.js";
 
 
 @Component({
@@ -35,7 +37,9 @@ export class WelcomeCardComponent implements AfterViewInit {
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
-  private controls!: OrbitControls;
+  private light!: THREE.DirectionalLight;
+  private controls: OrbitControls;
+  private flow!: Flow;
   private mouse = new THREE.Vector2();
   private raycaster = new THREE.Raycaster();
   private loader = new THREE.TextureLoader();
@@ -47,9 +51,20 @@ export class WelcomeCardComponent implements AfterViewInit {
 
   private menuOptions: THREE.Group;
 
+  private pathPoints = [
+    new THREE.Vector3(3, 0, 3),
+    new THREE.Vector3(3, 1, -3),
+    new THREE.Vector3(-3, 1, -3),
+    new THREE.Vector3(-3, 0, 3)
+
+  ];
+
+  private curve: THREE.CatmullRomCurve3;
+  private line: THREE.LineLoop;
   
 
   private createMenuObjects() {
+    // Objects 
     const arrowMaterial = new THREE.MeshNormalMaterial();
     const arrowGeometry = new THREE.BufferGeometry();
     const arrowPoints = [
@@ -66,13 +81,28 @@ export class WelcomeCardComponent implements AfterViewInit {
     this.rightArrow.position.x += 1.5;
     this.rightArrow.position.y -= 1.5;
 
-
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
     const cubeMaterial = new THREE.MeshBasicMaterial({ map: this.loader.load(this.texture) });
     this.cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
-    this.menuOptions = new THREE.Group();
-    this.menuOptions.add(this.cube);
+/*    this.menuOptions = new THREE.Group();
+    this.menuOptions.add(this.cube);*/
+
+    // Light
+    this.light = new THREE.DirectionalLight(0xc0c0c0);
+    this.light.position.set(- 8, 12, 10);
+    this.light.intensity = 1.0;
+
+    // Path for menu options to travel along
+    this.curve = new THREE.CatmullRomCurve3(this.pathPoints);
+    this.curve.closed = true;
+
+    const points = this.curve.getPoints(60);
+    this.line = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0x000000 }));
+
+    this.flow = new Flow(this.cube);
+    this.flow.updateCurve(0, this.curve);
+    this.flow.uniforms.flow.value = false;
   }
 
 
@@ -81,9 +111,13 @@ export class WelcomeCardComponent implements AfterViewInit {
     // scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.TextureLoader().load("");
-    this.createMenuObjects(); 
+    this.createMenuObjects();
+
+    this.scene.add(this.light);
+    this.scene.add(this.line);
+    this.scene.add(this.flow.object3D);
     this.scene.add(this.menuOptions);
-    this.scene.add(this.cube);
+/*    this.scene.add(this.cube);*/
     this.scene.add(this.rightArrow);
     this.scene.add(this.leftArrow);
 
@@ -97,6 +131,7 @@ export class WelcomeCardComponent implements AfterViewInit {
       this.farClippingPane
     )
     this.camera.position.z = this.cameraZ;
+
   }
 
   private getAspectRatio() {
@@ -110,16 +145,18 @@ export class WelcomeCardComponent implements AfterViewInit {
       if (this.INTERSECTED !== intersects[0].object ) { 
         this.INTERSECTED = intersects[0].object;
         if (this.INTERSECTED !== this.rightArrow && this.INTERSECTED !== this.leftArrow)
-          this.INTERSECTED.rotation.x += 100;
+/*          this.INTERSECTED.rotation.x += 100;*/console.log('hey');
       } else 
         this.INTERSECTED = null;
     }
   }
 
+  
   // Animate 
   private animate() {
     this.cube.rotation.x += this.rotationSpeedX;
     this.cube.rotation.y += this.rotationSpeedY;
+    this.flow.moveAlongCurve(0.0006);
   }
 
   // Resize
@@ -136,11 +173,26 @@ export class WelcomeCardComponent implements AfterViewInit {
     const pos = this.getCanvasRelativePosition(event);
     this.mouse.x = (pos.x / this.canvas.width) * 2 - 1;
     this.mouse.y = (pos.y / this.canvas.height) * -2 + 1;
-/*    this.cube1.rotation.y = 0;*/
   }
 
   // Click Event
-  
+  @HostListener('click', ['$event'])
+  onClick(event: MouseEvent) {
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    let intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    if (intersects.length > 0) {
+      this.INTERSECTED = intersects[0].object;
+      switch (this.INTERSECTED) {
+        case this.leftArrow:
+
+          break;
+        case this.rightArrow:
+
+          break;
+
+      }
+    }
+  }
 
   getCanvasRelativePosition(event: MouseEvent) {
     const rect = this.canvas.getBoundingClientRect();
@@ -156,8 +208,10 @@ export class WelcomeCardComponent implements AfterViewInit {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
-/*    this.canvas.appendChild(this.renderer.domElement);
-*/
+    document.body.appendChild(this.renderer.domElement);
+
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement); 
+
     let component: WelcomeCardComponent = this;
     (function render() {
       requestAnimationFrame(render);

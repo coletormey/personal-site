@@ -43,13 +43,14 @@ export class WelcomeCardComponent implements AfterViewInit {
   private flow_systemOption!: Flow;
   private flow_projectsOption!: Flow;
   private flow_servicesOption!: Flow;
+  private array_menuOptions: any;
   private mouse = new THREE.Vector2();
   private raycaster = new THREE.Raycaster();
   private loader = new THREE.TextureLoader();
   private INTERSECTED: any;
 
-  private systemOptionMesh: THREE.Mesh;
   private profileOptionMesh: THREE.Mesh;
+  private systemOptionMesh: THREE.Mesh;
 
   private rightArrow: THREE.Mesh;
   private leftArrow: THREE.Mesh;
@@ -58,8 +59,8 @@ export class WelcomeCardComponent implements AfterViewInit {
 
   private pathPoints = [
     new THREE.Vector3(3, 0, 3),
-    new THREE.Vector3(3, 2, -3),
-    new THREE.Vector3(-3, 2, -3),
+    new THREE.Vector3(3, 0.8, -3),
+    new THREE.Vector3(-3, 0.8, -3),
     new THREE.Vector3(-3, 0, 3)
 
   ];
@@ -117,11 +118,6 @@ export class WelcomeCardComponent implements AfterViewInit {
     this.flow_profileOption.uniforms.pathOffset.value = -0.125;
     this.flow_profileOption.uniforms.flow.value = false;
 
-    this.flow_systemOption = new Flow(this.systemOptionMesh);
-    this.flow_systemOption.updateCurve(0, this.curve);
-    this.flow_systemOption.uniforms.pathOffset.value = 0.125;
-    this.flow_systemOption.uniforms.flow.value = false;
-
     this.flow_projectsOption = new Flow(this.systemOptionMesh);
     this.flow_projectsOption.updateCurve(0, this.curve);
     this.flow_projectsOption.uniforms.pathOffset.value = -0.375;
@@ -132,6 +128,17 @@ export class WelcomeCardComponent implements AfterViewInit {
     this.flow_servicesOption.uniforms.pathOffset.value = -0.625;
     this.flow_servicesOption.uniforms.flow.value = false;
 
+    this.flow_systemOption = new Flow(this.systemOptionMesh);
+    this.flow_systemOption.updateCurve(0, this.curve);
+    this.flow_systemOption.uniforms.pathOffset.value = -0.875;
+    this.flow_systemOption.uniforms.flow.value = false;
+
+    this.array_menuOptions = [
+      this.flow_profileOption.object3D,
+      this.flow_systemOption.object3D,
+      this.flow_projectsOption.object3D,
+      this.flow_servicesOption.object3D
+    ];
   }
 
 
@@ -193,7 +200,8 @@ export class WelcomeCardComponent implements AfterViewInit {
   private animate() {
 /*    this.flow.object3D.geometry.rotateX(0.01);
 */
-/*    this.flow.moveAlongCurve(0.002);*/
+    /*    this.flow.moveAlongCurve(0.002);*/
+
   }
 
   // Resize
@@ -217,26 +225,48 @@ export class WelcomeCardComponent implements AfterViewInit {
   onClick(event: MouseEvent) {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     let intersects = this.raycaster.intersectObjects(this.scene.children, true);
-    if (intersects.length > 0 && intersects[0].object !== this.flow_profileOption.object3D) {
+    let temp: any;
+    if (intersects.length > 0 && intersects[0].object !== this.line ) {
       this.INTERSECTED = intersects[0].object;
 
       switch (this.INTERSECTED) {
         case this.leftArrow:
           this.flow_profileOption.moveAlongCurve(-0.25);
-          this.flow_systemOption.moveAlongCurve(-0.25);
           this.flow_projectsOption.moveAlongCurve(-0.25);
           this.flow_servicesOption.moveAlongCurve(-0.25);
+          this.flow_systemOption.moveAlongCurve(-0.25);
 
-          this.flow_profileOption.object3D.geometry.rotateX(10);
+          temp = this.array_menuOptions[3]
+          for (var i = this.array_menuOptions.length; i > 0; i--) {
+            if (i > 1) {
+              this.array_menuOptions[i - 1] = this.array_menuOptions[i - 2];
+            } else {
+              this.array_menuOptions[0] = temp;
+            }
+          }
+
+          this.flow_profileOption.object3D.geometry.rotateX(0.1);
           break;
         case this.rightArrow:
           this.flow_profileOption.moveAlongCurve(0.25);
-          this.flow_systemOption.moveAlongCurve(0.25);
           this.flow_projectsOption.moveAlongCurve(0.25);
           this.flow_servicesOption.moveAlongCurve(0.25);
-          break;
+          this.flow_systemOption.moveAlongCurve(0.25);
 
+          temp = this.array_menuOptions[3]
+          for (var i = this.array_menuOptions.length; i > 0; i--) {
+            if (i > 1) {
+              this.array_menuOptions[i - 1] = this.array_menuOptions[i - 2];
+            } else {
+              this.array_menuOptions[0] = temp;
+            }
+          }
+
+          this.flow_profileOption.object3D.geometry.rotateX(0.1);
+          break;
       }
+      //  TODO: scale down option in position 2, and then back up when it leaves this position
+      /*      this.array_menuOptions[2].geometry.scale(0.5, 0.5, 0.5)*/
     }
   }
 
@@ -256,8 +286,9 @@ export class WelcomeCardComponent implements AfterViewInit {
     this.renderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
     /*    document.body.appendChild(this.renderer.domElement);*/
 
-    // ^^TODO: For whatever reason, when I append the renderer.domElement
+    // ^^^^^^^TODO: For whatever reason, when I append the renderer.domElement
     //         the HostListeners for click and hover no longer work properly
+
 
     // Controls
     /*    this.controls = new OrbitControls(this.camera, this.renderer.domElement); */

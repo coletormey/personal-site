@@ -5,36 +5,21 @@
 }
 
 .home {
-    display: flex;
-    flex-direction: column;
-}
-
-.home-header-footer {
-  background-color: black;
-  height: 16vh;
-}
-
-.bottommm {
-  height: 17.3vh;
+/*    display: flex;
+    flex-direction: column;*/
+  width: 100%;
 }
 
 .menu-container {
-  display: flex;
+/*  display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: center;*/
+  width: 100%;
+  height: 100%;
 }
 
-.menu-item {
-}
-
-.leftSideBar {
-    background-color: black;
-    flex: 0.5;
-}
-
-.rightSideBar {
-    background-color: black;
-    flex: 0.5;
+.menu {
+    overflow: hidden;
 }
 
 .media-links {

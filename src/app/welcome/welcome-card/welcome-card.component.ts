@@ -2,7 +2,8 @@ import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, HostLis
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Flow } from "three/examples/jsm/modifiers/CurveModifier.js";
-import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { MathUtils } from 'three';
 
 
@@ -22,7 +23,7 @@ export class WelcomeCardComponent {
   @Input() public cameraZ: number = 100;
   @Input() public cameraY: number = -250;
   @Input() public fieldOfView: number = 1.5;
-  @Input('nearClipping') public nearClippingPane: number = 1;
+  @Input('nearClipping') public nearClippingPane: number = 1.5;
   @Input('farClipping') public farClippingPane: number = 1000;
   @Input() public fov = 1.5;
   @Input() public planeAspectRatio: number;
@@ -33,16 +34,23 @@ export class WelcomeCardComponent {
   private scene!: THREE.Scene;
   private sceneBackgroundTexture: string = "/assets/AC_menuBackground.png";
   private clock = new THREE.Clock();
-  private speed = 1; //units a second
+  private speed = 1; //units per second
   private delta = 0;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
-  private labelRenderer!: CSS2DRenderer;
   private mouse!: THREE.Vector2;
   private controls!: OrbitControls;
   private curve!: THREE.CatmullRomCurve3;
   private loader!: THREE.TextureLoader;
   private raycaster!: THREE.Raycaster;
+
+  // Title Screen Objects
+  private titleSubtextRenderer!: CSS2DRenderer;
+  private titleEnterTextRenderer!: CSS2DRenderer;
+  private titleCard!: THREE.Mesh;
+  private titleEnterButton!: THREE.Mesh;
+
+  // Menu Screen Objects
   private menuOptionMesh_profile!: THREE.Mesh;
   private menuOptionMesh_services!: THREE.Mesh;
   private menuOptionMesh_system!: THREE.Mesh;
@@ -60,12 +68,14 @@ export class WelcomeCardComponent {
   private menuOptionsFlowSpeedPerPosition_Left = [-0.01, -0.01, -0.02];
   private menuOptionsFlowSpeedPerPosition_Right = [0.01, 0.02, 0.01];
 
+  private pre = document.createElement('pre')
 
   ngOnInit() {
-    this.scene = new THREE.Scene();
-/*    this.scene.background = new THREE.TextureLoader().load(this.sceneBackgroundTexture);*/
+    // MAIN MENU SCENE
+    let sceneTitleScreen = new THREE.Scene();
+    this.scene = sceneTitleScreen;
     this.camera = new THREE.PerspectiveCamera(
-      this.fieldOfView,
+      this.fieldOfView * 2,
       this.getAspectRatio(),
       this.nearClippingPane,
       this.farClippingPane
@@ -75,8 +85,23 @@ export class WelcomeCardComponent {
     this.mouse = new THREE.Vector2();
     this.loader = new THREE.TextureLoader();
     this.raycaster = new THREE.Raycaster();
-    this.labelRenderer = new CSS2DRenderer();
-    this.createSceneObjects();
+    this.titleSubtextRenderer = new CSS2DRenderer();
+    this.titleSubtextRenderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
+    this.titleSubtextRenderer.domElement.style.position = 'absolute';
+    this.titleSubtextRenderer.domElement.style.top = '32vh';
+    this.titleSubtextRenderer.domElement.style.left = '0vw';
+    this.titleSubtextRenderer.domElement.style.pointerEvents = 'none';
+    document.body.appendChild(this.titleSubtextRenderer.domElement);
+/*    this.createSceneMenuObjects();*/
+
+    this.createTitleScreenObjects();
+
+
+    //vvvvv   THIS can be used on a click event to load another scene
+
+/*    this.scene = sceneTitle;
+    this.createSceneMenuObjects();*/
+
   }
 
 
@@ -85,7 +110,47 @@ export class WelcomeCardComponent {
   }
 
 
-  private createSceneObjects() {
+  private createTitleScreenObjects() {
+    const titleCardGeometry = new THREE.PlaneGeometry(25, 30);
+    const titleCardMaterial = new THREE.MeshBasicMaterial({
+      color: 0xFFFFF0,
+      side: THREE.DoubleSide
+    });
+    this.titleCard = new THREE.Mesh(titleCardGeometry, titleCardMaterial);
+    try {
+      const texture = this.loader.load('./assets/tormey-xyz_TitleScreen.png');
+      titleCardMaterial.map = texture;
+      titleCardMaterial.transparent = true;
+      titleCardMaterial.needsUpdate = true;
+    } catch (e) {
+      console.error(e);
+    } 
+    this.scene.add(this.titleCard);
+
+    this.pre.className = 'title_subtext';
+    this.pre.style.fontFamily = "'Times New Roman', Times, serif, 'Lucida Console', 'Courier New', monospace";
+    this.pre.style.textShadow = '0 0 1.5px #fff';
+    this.pre.style.color = 'transparent';
+    this.pre.style.fontSize = '1.5rem';
+    this.pre.style.fontWeight = '900';
+    this.pre.textContent =
+      "                             Welcome to tormey.xyz" +
+      "\n\n             A portfolio in the style of Armored Core™,\ntrademark of Sony Computer Entertainment America Inc." +
+      "\n                             © 1997 From Software";
+    const titleScreenSubtext = new CSS2DObject(this.pre);
+    this.scene.add(titleScreenSubtext);
+
+    const loader = new FontLoader();
+    loader.load('')
+    const buttonText = 'Enter';
+
+    const titleEnterButtonGeometry = new THREE.PlaneGeometry(7, 3);
+    const titleEnterButtonMaterial = new THREE.MeshBasicMaterial();
+    this.titleEnterButton = new THREE.Mesh(titleEnterButtonGeometry, titleEnterButtonMaterial);
+  }
+
+
+  private createSceneMenuObjects() {
     this.curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, -4, 0),
       new THREE.Vector3(4, 0, 0),
@@ -147,7 +212,6 @@ export class WelcomeCardComponent {
     this.leftMenuArrow = this.rightMenuArrow.clone();
     this.leftMenuArrow.position.setX(-1.75);
     this.scene.add(this.rightMenuArrow, this.leftMenuArrow);
-
   }
 
 
@@ -155,24 +219,31 @@ export class WelcomeCardComponent {
     this.renderer = new THREE.WebGL1Renderer({ canvas: this.canvas });
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
-      this.renderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
-      this.initWidth = window.innerWidth;
-      this.initHeight = window.innerHeight * 2 / 3;
-      this.planeAspectRatio = this.initWidth / this.initHeight;
-    
+    this.renderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
+    this.initWidth = window.innerWidth;
+    this.initHeight = window.innerHeight * 2 / 3;
+    this.planeAspectRatio = this.initWidth / this.initHeight;
 
-/*    this.labelRenderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
-    this.labelRenderer.domElement.style.position = 'absolute';
-    this.labelRenderer.domElement.style.top = '0px';*/
+
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enabled = false;
+
+    if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
+      this.titleCard.geometry = new THREE.PlaneGeometry(12, 18);
+      this.titleSubtextRenderer.domElement.style.scale = '0.75';
+      this.titleSubtextRenderer.domElement.style.top = '20vh';
+      this.pre.style.textShadow = '0 0 1px #fff';
+      this.pre.style.fontSize = '1rem';
+    } 
 
     let component: WelcomeCardComponent = this;
     (function render() {
       requestAnimationFrame(render);
       component.delta = component.clock.getDelta();
       component.hoverMenuItem();
+      component.titleSubtextRenderer.render(component.scene, component.camera);
       component.renderer.render(component.scene, component.camera);
-      component.labelRenderer.render(component.scene, component.camera);
+      component.titleSubtextRenderer.render(component.scene, component.camera);
       component.animate();
     }());
   }
@@ -217,8 +288,7 @@ export class WelcomeCardComponent {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
     if (intersects.length > 0 ) {
-        this.INTERSECTED = intersects[0].object;
-
+      this.INTERSECTED = intersects[0].object;
      
     }
   }
@@ -227,11 +297,33 @@ export class WelcomeCardComponent {
   // Resize Listener
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
+    if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
+      this.titleCard.geometry = new THREE.PlaneGeometry(12, 18);
+      this.titleSubtextRenderer.domElement.style.scale = '0.75';
+      this.titleSubtextRenderer.domElement.style.top = '20vh';
+      this.pre.style.fontSize = '1rem';
+      this.pre.style.textShadow = '0 0 1px #fff';
+      this.titleSubtextRenderer.domElement.style.top = '20vh';
+
+    } else /*if (window.innerHeight < 800) {
+      this.titleCard.geometry = new THREE.PlaneGeometry(12, 18);
+      this.titleSubtextRenderer.domElement.style.scale = '0.75';*//*
+      this.titleSubtextRenderer.domElement.style.top = '20vh';*//*
+      this.pre.style.fontSize = '1.5rem';
+      this.titleSubtextRenderer.domElement.style.top = '20vh';
+    } else */{
+      this.titleCard.geometry = new THREE.PlaneGeometry(25, 30);
+      this.titleSubtextRenderer.domElement.style.scale = '1';
+      this.titleSubtextRenderer.domElement.style.top = '32vh';
+      this.pre.style.fontSize = '1.5rem';
+    }
+
+    this.titleSubtextRenderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
     this.renderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
     this.camera.aspect = window.innerWidth / (window.innerHeight * 2 / 3);
     this.camera.updateProjectionMatrix();
-    this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    if (this.camera.aspect > this.initWidth / this.initHeight) {
+
+/*    if (this.camera.aspect > this.initWidth / this.initHeight) {
       // window too large
       this.camera.fov = this.fov;
     } else {
@@ -239,8 +331,9 @@ export class WelcomeCardComponent {
       const cameraHeight = Math.tan(MathUtils.degToRad(this.fov / 2));
       const ratio = this.camera.aspect / this.planeAspectRatio;
       const newCameraHeight = cameraHeight / ratio;
-      this.camera.fov = MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2;
-    }
+      this.camera.fov = (MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2);
+    }*/
+
   }
 
   // Locate Mouse Listener

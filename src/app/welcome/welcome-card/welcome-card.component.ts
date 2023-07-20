@@ -3,7 +3,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Flow } from "three/examples/jsm/modifiers/CurveModifier.js";
 import { CSS2DRenderer, CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
-import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { MathUtils } from 'three';
 
 
@@ -86,12 +87,7 @@ export class WelcomeCardComponent {
     this.loader = new THREE.TextureLoader();
     this.raycaster = new THREE.Raycaster();
     this.titleSubtextRenderer = new CSS2DRenderer();
-    this.titleSubtextRenderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
-    this.titleSubtextRenderer.domElement.style.position = 'absolute';
-    this.titleSubtextRenderer.domElement.style.top = '32vh';
-    this.titleSubtextRenderer.domElement.style.left = '0vw';
-    this.titleSubtextRenderer.domElement.style.pointerEvents = 'none';
-    document.body.appendChild(this.titleSubtextRenderer.domElement);
+
 /*    this.createSceneMenuObjects();*/
 
     this.createTitleScreenObjects();
@@ -111,7 +107,15 @@ export class WelcomeCardComponent {
 
 
   private createTitleScreenObjects() {
-    const titleCardGeometry = new THREE.PlaneGeometry(25, 30);
+    this.titleSubtextRenderer.setSize(window.innerWidth, window.innerHeight / 2);
+    this.titleSubtextRenderer.domElement.style.position = 'absolute';
+    this.titleSubtextRenderer.domElement.style.top = '35vh';
+    this.titleSubtextRenderer.domElement.style.left = '0vw';
+    this.titleSubtextRenderer.domElement.style.scale = '0.75';
+    this.titleSubtextRenderer.domElement.style.pointerEvents = 'none';
+    document.body.appendChild(this.titleSubtextRenderer.domElement);
+
+    const titleCardGeometry = new THREE.PlaneGeometry(20, 20);
     const titleCardMaterial = new THREE.MeshBasicMaterial({
       color: 0xFFFFF0,
       side: THREE.DoubleSide
@@ -124,7 +128,8 @@ export class WelcomeCardComponent {
       titleCardMaterial.needsUpdate = true;
     } catch (e) {
       console.error(e);
-    } 
+    }
+    this.titleCard.position.setY(6);
     this.scene.add(this.titleCard);
 
     this.pre.className = 'title_subtext';
@@ -140,13 +145,6 @@ export class WelcomeCardComponent {
     const titleScreenSubtext = new CSS2DObject(this.pre);
     this.scene.add(titleScreenSubtext);
 
-    const loader = new FontLoader();
-    loader.load('')
-    const buttonText = 'Enter';
-
-    const titleEnterButtonGeometry = new THREE.PlaneGeometry(7, 3);
-    const titleEnterButtonMaterial = new THREE.MeshBasicMaterial();
-    this.titleEnterButton = new THREE.Mesh(titleEnterButtonGeometry, titleEnterButtonMaterial);
   }
 
 
@@ -219,19 +217,19 @@ export class WelcomeCardComponent {
     this.renderer = new THREE.WebGL1Renderer({ canvas: this.canvas });
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
-    this.renderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.initWidth = window.innerWidth;
-    this.initHeight = window.innerHeight * 2 / 3;
+    this.initHeight = window.innerHeight;
     this.planeAspectRatio = this.initWidth / this.initHeight;
 
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enabled = false;
+/*    this.controls.enabled = false;*/
 
     if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
-      this.titleCard.geometry = new THREE.PlaneGeometry(12, 18);
+      this.titleCard.geometry = new THREE.PlaneGeometry(10, 10);
       this.titleSubtextRenderer.domElement.style.scale = '0.75';
-      this.titleSubtextRenderer.domElement.style.top = '20vh';
+      this.titleSubtextRenderer.domElement.style.top = '30vh';
       this.pre.style.textShadow = '0 0 1px #fff';
       this.pre.style.fontSize = '1rem';
     } 
@@ -244,6 +242,7 @@ export class WelcomeCardComponent {
       component.titleSubtextRenderer.render(component.scene, component.camera);
       component.renderer.render(component.scene, component.camera);
       component.titleSubtextRenderer.render(component.scene, component.camera);
+      component.camera.lookAt(component.titleEnterButton.position);
       component.animate();
     }());
   }
@@ -298,12 +297,12 @@ export class WelcomeCardComponent {
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
-      this.titleCard.geometry = new THREE.PlaneGeometry(12, 18);
-      this.titleSubtextRenderer.domElement.style.scale = '0.75';
+      this.titleCard.geometry = new THREE.PlaneGeometry(10, 10);
+      this.titleCard.position.setY(6);
+      this.titleSubtextRenderer.domElement.style.scale = '0.70';
       this.titleSubtextRenderer.domElement.style.top = '20vh';
       this.pre.style.fontSize = '1rem';
       this.pre.style.textShadow = '0 0 1px #fff';
-      this.titleSubtextRenderer.domElement.style.top = '20vh';
 
     } else /*if (window.innerHeight < 800) {
       this.titleCard.geometry = new THREE.PlaneGeometry(12, 18);
@@ -312,14 +311,14 @@ export class WelcomeCardComponent {
       this.pre.style.fontSize = '1.5rem';
       this.titleSubtextRenderer.domElement.style.top = '20vh';
     } else */{
-      this.titleCard.geometry = new THREE.PlaneGeometry(25, 30);
-      this.titleSubtextRenderer.domElement.style.scale = '1';
-      this.titleSubtextRenderer.domElement.style.top = '32vh';
+      this.titleCard.geometry = new THREE.PlaneGeometry(20, 20);
+      this.titleSubtextRenderer.domElement.style.scale = '0.75';
+      this.titleSubtextRenderer.domElement.style.top = '28vh';
       this.pre.style.fontSize = '1.5rem';
     }
 
     this.titleSubtextRenderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
-    this.renderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.camera.aspect = window.innerWidth / (window.innerHeight * 2 / 3);
     this.camera.updateProjectionMatrix();
 

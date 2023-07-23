@@ -25,7 +25,7 @@ export class WelcomeCardComponent {
   @Input() public cameraY: number = -250;
   @Input() public fieldOfView: number = 1.5;
   @Input('nearClipping') public nearClippingPane: number = 1.5;
-  @Input('farClipping') public farClippingPane: number = 1000;
+  @Input('farClipping') public farClippingPane: number = 5000;
   @Input() public fov = 1.5;
   @Input() public planeAspectRatio: number;
   @Input() public initWidth: number;
@@ -52,6 +52,7 @@ export class WelcomeCardComponent {
   private titleEnterButton!: THREE.Mesh;
 
   // Menu Screen Objects
+  private grid!: THREE.GridHelper;
   private menuOptionMesh_profile!: THREE.Mesh;
   private menuOptionMesh_services!: THREE.Mesh;
   private menuOptionMesh_system!: THREE.Mesh;
@@ -88,16 +89,7 @@ export class WelcomeCardComponent {
     this.raycaster = new THREE.Raycaster();
     this.titleSubtextRenderer = new CSS2DRenderer();
 
-/*    this.createSceneMenuObjects();*/
-
     this.createTitleScreenObjects();
-
-
-    //vvvvv   THIS can be used on a click event to load another scene
-
-/*    this.scene = sceneTitle;
-    this.createSceneMenuObjects();*/
-
   }
 
 
@@ -109,7 +101,7 @@ export class WelcomeCardComponent {
   private createTitleScreenObjects() {
     this.titleSubtextRenderer.setSize(window.innerWidth, window.innerHeight / 2);
     this.titleSubtextRenderer.domElement.style.position = 'absolute';
-    this.titleSubtextRenderer.domElement.style.top = '35vh';
+    this.titleSubtextRenderer.domElement.style.top = '36vh';
     this.titleSubtextRenderer.domElement.style.left = '0vw';
     this.titleSubtextRenderer.domElement.style.scale = '0.75';
     this.titleSubtextRenderer.domElement.style.pointerEvents = 'none';
@@ -145,22 +137,34 @@ export class WelcomeCardComponent {
     const titleScreenSubtext = new CSS2DObject(this.pre);
     this.scene.add(titleScreenSubtext);
 
+    const enterButtonMaterial = new THREE.MeshNormalMaterial();
+    const enterButtomGeometry = new THREE.PlaneGeometry(8, 4);
+    this.titleEnterButton = new THREE.Mesh(enterButtomGeometry, enterButtonMaterial);
+    this.titleEnterButton.position.setY(-11);
+    this.scene.add(this.titleEnterButton);
   }
 
 
   private createSceneMenuObjects() {
+    this.camera.position.z = 150;
+    this.camera.position.x = 0;
+    this.camera.position.y = 10;
+    this.camera.updateProjectionMatrix();
+    this.controls.update();
+
     this.curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, -4, 0),
-      new THREE.Vector3(4, 0, 0),
-      new THREE.Vector3(0, 4, 0),
-      new THREE.Vector3(-4, 0, 0),
+      new THREE.Vector3(0, -1, 8),
+      new THREE.Vector3(8, 0, 0),
+      new THREE.Vector3(0, 1, -8),
+      new THREE.Vector3(-8, 0, 0),
     ]);
     this.curve.closed = true;
+
     const points = this.curve.getPoints(50);
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
     this.menuOptionCircle = new THREE.Line(geometry, material);
-/*    this.scene.add(this.menuOptionCircle);*/
+    this.scene.add(this.menuOptionCircle);
 
     const cube1 = new THREE.BoxGeometry(1, 1, 1);
     const cube2 = new THREE.BoxGeometry(1, 1, 1);
@@ -205,21 +209,29 @@ export class WelcomeCardComponent {
     arrowGeometry.setFromPoints(arrowPoints);
     arrowGeometry.computeVertexNormals();
     this.rightMenuArrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
-    this.rightMenuArrow.rotateX(-30);
     this.rightMenuArrow.position.setX(2);
     this.leftMenuArrow = this.rightMenuArrow.clone();
     this.leftMenuArrow.position.setX(-1.75);
     this.scene.add(this.rightMenuArrow, this.leftMenuArrow);
+
+    const size = 2000;
+    const divisions = 150;
+    this.grid = new THREE.GridHelper(size, divisions);
+    this.grid.position.y = -5;
+    this.grid.rotation.y = 0.01;
+    this.scene.add(this.grid);
   }
 
 
   private startRenderingLoop() {
-    this.renderer = new THREE.WebGL1Renderer({ canvas: this.canvas });
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
+
+
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.initWidth = window.innerWidth;
-    this.initHeight = window.innerHeight;
+    this.initHeight = window.innerHeight / 2;
     this.planeAspectRatio = this.initWidth / this.initHeight;
 
 
@@ -229,10 +241,10 @@ export class WelcomeCardComponent {
     if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
       this.titleCard.geometry = new THREE.PlaneGeometry(10, 10);
       this.titleSubtextRenderer.domElement.style.scale = '0.75';
-      this.titleSubtextRenderer.domElement.style.top = '30vh';
+      this.titleSubtextRenderer.domElement.style.top = '26vh';
       this.pre.style.textShadow = '0 0 1px #fff';
       this.pre.style.fontSize = '1rem';
-    } 
+    }
 
     let component: WelcomeCardComponent = this;
     (function render() {
@@ -242,13 +254,21 @@ export class WelcomeCardComponent {
       component.titleSubtextRenderer.render(component.scene, component.camera);
       component.renderer.render(component.scene, component.camera);
       component.titleSubtextRenderer.render(component.scene, component.camera);
-      component.camera.lookAt(component.titleEnterButton.position);
       component.animate();
     }());
   }
 
 
   private animate() {
+    this.animateMenuScreen();
+  }
+
+  private animateMenuScreen() {
+    if (this.camera.position.y >= 0.85) {
+      this.camera.position.y -= 0.0125;
+      this.camera.updateProjectionMatrix();
+      this.controls.update();
+    }
     if (this.rotateMenuLeft && Math.round((this.listOfMenuObjects[0].uniforms.pathOffset.value + Number.EPSILON) * 100) / 100 !== -0.25) {
       this.listOfMenuObjects[0].moveAlongCurve(-0.01);
       this.listOfMenuObjects[1].moveAlongCurve(-0.01);
@@ -280,15 +300,19 @@ export class WelcomeCardComponent {
         }
       }
     }
+    this.grid.rotation.y += 0.0002;
   }
 
   // Hover
   private hoverMenuItem() {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-    if (intersects.length > 0 ) {
-      this.INTERSECTED = intersects[0].object;
-     
+    if (intersects.length > 0) {
+      if (intersects[0].object == this.titleEnterButton) {
+        this.INTERSECTED = intersects[0].object;
+
+
+      }
     }
   }
 
@@ -296,21 +320,44 @@ export class WelcomeCardComponent {
   // Resize Listener
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
-    if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
+    this.resizeTitleScreen();
+    this.resizeMenuScreen();
+  }
+
+  private resizeMenuScreen() {
+    if (window.innerHeight < 500) {
+
+    } else if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
+
+    } else {
+
+    }
+
+    this.titleSubtextRenderer.setSize(window.innerWidth, window.innerHeight * 2 / 3);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.camera.aspect = window.innerWidth / (window.innerHeight * 2 / 3);
+    this.camera.updateProjectionMatrix();
+  }
+
+  private resizeTitleScreen() {
+    if (window.innerHeight < 500) {
+      this.titleSubtextRenderer.domElement.style.scale = '0.50';
+      this.titleSubtextRenderer.domElement.style.top = '18vh';
+      this.pre.style.fontSize = '1rem';
+    } else if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
       this.titleCard.geometry = new THREE.PlaneGeometry(10, 10);
       this.titleCard.position.setY(6);
-      this.titleSubtextRenderer.domElement.style.scale = '0.70';
-      this.titleSubtextRenderer.domElement.style.top = '20vh';
+      this.titleSubtextRenderer.domElement.style.scale = '0.75';
+      this.titleSubtextRenderer.domElement.style.top = '18vh';
       this.pre.style.fontSize = '1rem';
       this.pre.style.textShadow = '0 0 1px #fff';
-
     } else /*if (window.innerHeight < 800) {
       this.titleCard.geometry = new THREE.PlaneGeometry(12, 18);
       this.titleSubtextRenderer.domElement.style.scale = '0.75';*//*
       this.titleSubtextRenderer.domElement.style.top = '20vh';*//*
       this.pre.style.fontSize = '1.5rem';
       this.titleSubtextRenderer.domElement.style.top = '20vh';
-    } else */{
+    } else */ {
       this.titleCard.geometry = new THREE.PlaneGeometry(20, 20);
       this.titleSubtextRenderer.domElement.style.scale = '0.75';
       this.titleSubtextRenderer.domElement.style.top = '28vh';
@@ -322,17 +369,16 @@ export class WelcomeCardComponent {
     this.camera.aspect = window.innerWidth / (window.innerHeight * 2 / 3);
     this.camera.updateProjectionMatrix();
 
-/*    if (this.camera.aspect > this.initWidth / this.initHeight) {
-      // window too large
-      this.camera.fov = this.fov;
-    } else {
-      // window too narrow
-      const cameraHeight = Math.tan(MathUtils.degToRad(this.fov / 2));
-      const ratio = this.camera.aspect / this.planeAspectRatio;
-      const newCameraHeight = cameraHeight / ratio;
-      this.camera.fov = (MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2);
-    }*/
-
+    /*    if (this.camera.aspect > this.initWidth / this.initHeight) {
+          // window too large
+          this.camera.fov = this.fov;
+        } else {
+          // window too narrow
+          const cameraHeight = Math.tan(MathUtils.degToRad(this.fov / 2));
+          const ratio = this.camera.aspect / this.planeAspectRatio;
+          const newCameraHeight = cameraHeight / ratio;
+          this.camera.fov = (MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2);
+        }*/
   }
 
   // Locate Mouse Listener
@@ -361,6 +407,12 @@ export class WelcomeCardComponent {
         this.rotateMenuLeft = true;
       } else if (this.INTERSECTED == this.rightMenuArrow) {
         this.rotateMenuRight = true;
+      } else if (this.INTERSECTED == this.titleEnterButton) {
+        //vvvvv   THIS can be used on a click event to load another scene
+        let sceneMainMenu = new THREE.Scene();
+        this.scene = sceneMainMenu;
+        this.titleSubtextRenderer.domElement.remove();
+        this.createSceneMenuObjects();
       }
     }
   }

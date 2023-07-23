@@ -10,6 +10,10 @@
   background-color: black;
 }
 
+.menu {
+  display: block;
+}
+
 .title_subtext {
   color: transparent;
   text-shadow: 0 0 2px #fff;

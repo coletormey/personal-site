@@ -236,7 +236,7 @@ export class WelcomeCardComponent {
 
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-/*    this.controls.enabled = false;*/
+    this.controls.enabled = false;
 
     if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
       this.titleCard.geometry = new THREE.PlaneGeometry(10, 10);

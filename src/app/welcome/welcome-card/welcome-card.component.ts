@@ -52,7 +52,6 @@ export class WelcomeCardComponent {
   private titleEnterButton!: THREE.Mesh;
 
   // Menu Screen Objects
-  private grid!: THREE.GridHelper;
   private menuOptionMesh_profile!: THREE.Mesh;
   private menuOptionMesh_services!: THREE.Mesh;
   private menuOptionMesh_system!: THREE.Mesh;
@@ -69,6 +68,10 @@ export class WelcomeCardComponent {
   private menuOptionsLocation = [0, 0.25, 0.75];
   private menuOptionsFlowSpeedPerPosition_Left = [-0.01, -0.01, -0.02];
   private menuOptionsFlowSpeedPerPosition_Right = [0.01, 0.02, 0.01];
+
+  private gridSize = 2000;
+  private gridDivisions = 150;
+  private grid: THREE.GridHelper = new THREE.GridHelper(this.gridSize, this.gridDivisions);
 
   private pre = document.createElement('pre')
 
@@ -214,9 +217,7 @@ export class WelcomeCardComponent {
     this.leftMenuArrow.position.setX(-1.75);
     this.scene.add(this.rightMenuArrow, this.leftMenuArrow);
 
-    const size = 2000;
-    const divisions = 150;
-    this.grid = new THREE.GridHelper(size, divisions);
+
     this.grid.position.y = -5;
     this.grid.rotation.y = 0.01;
     this.scene.add(this.grid);
@@ -236,7 +237,7 @@ export class WelcomeCardComponent {
 
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enabled = false;
+/*    this.controls.enabled = false;*/
 
     if (window.innerWidth < 800 || (window.innerWidth < 800 || window.innerHeight < 500)) {
       this.titleCard.geometry = new THREE.PlaneGeometry(10, 10);

@@ -1,17 +1,55 @@
 * {
   margin: 0;
   padding: 0;
-
+  overflow: auto;
 }
 
 .menu-container {
   width: 100vw;
   height: 100vh;
   background-color: black;
+  display: block;
 }
 
 .menu {
   display: block;
+}
+
+.canvas {
+  height: 100%;
+}
+
+
+
+.option {
+  width: 70vw;
+  height: 55vh;
+  top: 100vh;
+  display: block;
+  left: 10vw;
+  background-color: white;
+  position: fixed;
+  color: black;
+  overflow: auto;
+  touch-action: none;
+  z-index: 20;
+}
+
+.option_shadow {
+  width: 70vw;
+  height: 55vh;
+  top: 102vh;
+  display: block;
+  left: 12vw;
+  background-color: #401a01;
+  position: fixed;
+  overflow: auto;
+  touch-action: none;
+  z-index: 10;
+}
+
+.profile-blurb {
+
 }
 
 .title_subtext {
@@ -25,6 +63,27 @@
   font-size: 1.5rem;
   font-family: 'Times New Roman', Times, serif, "Lucida Console", "Courier New", monospace;
   font-weight: 900;
+  touch-action: none;
+}
+
+.soundIcon {
+  position: absolute;
+  top: 83vh;
+  left: 85vw;
+  display: block;
+  z-index: 999;
+  touch-action: none;
+}
+
+.returnIcon {
+  position: fixed;
+  top: 73vh;
+  left: 12vw;
+  display: block;
+  z-index: 999;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
 }
 
 .media-links {
